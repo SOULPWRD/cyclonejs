@@ -1,15 +1,15 @@
 /*property
-    createServer, dev, end, exports, freeze, host, https, listen, method, on,
-    port, render_to_html, ssr, start, url
+    createServer, dev, dev_middleware, end, exports, freeze, host,
+    hot_middleware, https, listen, method, on, port, render_to_html, sequence,
+    ssr, start, url, webpack
 */
-
 
 function init() {
     "use strict";
 
     const http = require("http");
     const https = require("https");
-
+    const parseq = require("./parseq");
     const default_host = "127.0.0.1";
     const default_port = 3000;
 
@@ -19,6 +19,7 @@ function init() {
         const is_https = spec.https;
         const host = spec.host || default_host;
         const port = spec.port || default_port;
+        const webpack = spec.webpack;
 
         const http_server = (
             is_https
@@ -27,15 +28,31 @@ function init() {
         );
 
         function request_handler(req, res) {
-            const method = req.method;
-
-            if (method !== "GET") {
+            if (req.method !== "GET") {
                 res.end("Unsupported method");
                 return;
             }
 
-            if (dev) {
-                // todo dev
+            if (dev === true) {
+                return parseq.sequence([
+                    webpack.dev_middleware(req, res),
+                    webpack.hot_middleware(req, res)
+                ])(function (value, reason) {
+                    if (value === undefined || reason) {
+                        // handle reason
+                        return;
+                    }
+
+                    ssr.render_to_html(function (html, err) {
+                        if (err) {
+                            return res.end("Not found");
+                        }
+
+                        res.end(html);
+                    }, {
+                        url: req.url
+                    });
+                });
             }
 
             ssr.render_to_html(function (html, err) {
