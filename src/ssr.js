@@ -10,6 +10,8 @@ function init() {
 
     function ssr(spec) {
         const root_dir = spec.root_dir;
+        const static_path = spec.static_path;
+        const pages_root_dir = spec.pages_root_dir;
 
         function virtual_html([vtree]) {
             return (
@@ -34,7 +36,7 @@ function init() {
         function load_app(url_path) {
             const parsed_url = url.parse(url_path);
             const path_name = parsed_url.pathname;
-            const app_path = path.join(root_dir, path_name);
+            const app_path = path.join(pages_root_dir, path_name);
             return require(app_path);
         }
 
@@ -52,7 +54,8 @@ function init() {
             };
         }
 
-        function render_to_html(cb, {url}) {
+        function render_to_html(cb, spec) {
+            const url = spec.url;
             let app;
             try {
                 app = load_app(url);

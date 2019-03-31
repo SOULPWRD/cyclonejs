@@ -20,6 +20,7 @@ function init() {
         const host = spec.host || default_host;
         const port = spec.port || default_port;
         const webpack = spec.webpack;
+        const {dev_middleware, hot_middleware} = webpack.dev();
 
         const http_server = (
             is_https
@@ -35,8 +36,8 @@ function init() {
 
             if (dev === true) {
                 return parseq.sequence([
-                    webpack.dev_middleware(req, res),
-                    webpack.hot_middleware(req, res)
+                    dev_middleware(req, res),
+                    hot_middleware(req, res)
                 ])(function (value, reason) {
                     if (value === undefined || reason) {
                         // handle reason

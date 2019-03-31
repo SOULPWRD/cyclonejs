@@ -14,3 +14,5 @@ app.start(function (value, err) {
 
     console.log(`>Server is running on localhost:3000`);
 });
+
+// app.build();
